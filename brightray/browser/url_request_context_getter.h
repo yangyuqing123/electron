@@ -18,6 +18,10 @@
 #include "net/url_request/url_request_context.h"
 #include "net/url_request/url_request_context_getter.h"
 
+#if DCHECK_IS_ON()
+#include "base/debug/leak_tracker.h"
+#endif
+
 namespace base {
 class MessageLoop;
 }
@@ -85,6 +89,8 @@ class URLRequestContextGetter : public net::URLRequestContextGetter {
   net::HostResolver* host_resolver();
   net::URLRequestJobFactory* job_factory() const { return job_factory_; }
 
+  void NotifyContextShutdownOnIO();
+
  private:
   Delegate* delegate_;
 
@@ -109,6 +115,12 @@ class URLRequestContextGetter : public net::URLRequestContextGetter {
   content::URLRequestInterceptorScopedVector protocol_interceptors_;
 
   net::URLRequestJobFactory* job_factory_;  // weak ref
+
+  bool context_shutting_down_;
+
+#if DCHECK_IS_ON()
+  base::debug::LeakTracker<URLRequestContextGetter> leak_tracker_;
+#endif
 
   DISALLOW_COPY_AND_ASSIGN(URLRequestContextGetter);
 };

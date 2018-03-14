@@ -342,7 +342,7 @@ void DoCacheActionInIO(
     on_get_backend.Run(net::OK);
 }
 
-void SetProxyInIO(net::URLRequestContextGetter* getter,
+void SetProxyInIO(scoped_refptr<net::URLRequestContextGetter> getter,
                   const net::ProxyConfig& config,
                   const base::Closure& callback) {
   auto proxy_service = getter->GetURLRequestContext()->proxy_service();
@@ -533,8 +533,9 @@ void Session::FlushStorageData() {
 void Session::SetProxy(const net::ProxyConfig& config,
                        const base::Closure& callback) {
   auto getter = browser_context_->GetRequestContext();
-  BrowserThread::PostTask(BrowserThread::IO, FROM_HERE,
-      base::Bind(&SetProxyInIO, base::Unretained(getter), config, callback));
+  BrowserThread::PostTask(
+      BrowserThread::IO, FROM_HERE,
+      base::Bind(&SetProxyInIO, base::RetainedRef(getter), config, callback));
 }
 
 void Session::SetDownloadPath(const base::FilePath& path) {
